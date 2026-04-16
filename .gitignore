@@ -1,16 +1,18 @@
 # 1. Ignore EVERYTHING by default
 *
 
-# 2. Allow only the essential files for the Dashboard website
-!dashboard/
-!dashboard/**
+# 2. Allow only the essential files for the Dashboard website (Root Level)
+!index.html
+!app.js
+!style.css
+!lock_active.json
 !data_*_m.csv
 !data_*_r.csv
 !README.md
 !.gitignore
 !.gcloudignore
 
-# 3. Explicitly ignore sensitive/bulk local files (Double-check)
+# 3. Explicitly ignore sensitive/bulk local files
 bootcamp.db
 all_quiz_responses_clean.csv
 *.py
