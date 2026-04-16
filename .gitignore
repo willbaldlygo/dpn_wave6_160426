@@ -1,0 +1,21 @@
+# Exclude large data and local database
+bootcamp.db
+all_quiz_responses_clean.csv
+lecture_on_ai_agents.mp3
+
+# Exclude original un-hashed data
+milestone_matrix.csv
+layer2_layer3_clean_matrix.csv
+layer2_layer3_analysis.csv
+
+# Exclude scratch files and logs
+.DS_Store
+PROJECT_LOG.md
+AGENT_INSTRUCTIONS.md
+Implementing SQL Analyst Workflow.md
+negative_candidates.json
+other_candidates_for_review.md
+
+# Only include the locked data files
+!data_*_m.csv
+!data_*_r.csv
