@@ -155,14 +155,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const status = document.querySelector('.status-indicator');
 
         if (newMode === 'metrics') {
-            if(metricsView) metricsView.style.display = 'block';
+            if(metricsView) metricsView.style.display = 'flex';
             if(dataView) dataView.style.display = 'none';
             if(selector) selector.style.display = 'none';
             if(status) status.style.display = 'none';
             document.getElementById('cohort-drilldown').style.display = 'none';
         } else {
             if(metricsView) metricsView.style.display = 'none';
-            if(dataView) dataView.style.display = 'block';
+            if(dataView) dataView.style.display = 'flex';
             if(selector) selector.style.display = 'flex';
             if(status) status.style.display = 'flex';
             
