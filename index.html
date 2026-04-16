@@ -91,6 +91,7 @@
                 <div class="mode-toggle glass">
                     <button id="mode-reflections" class="mode-btn active">Usage Reflections</button>
                     <button id="mode-milestones" class="mode-btn">Milestone Progression</button>
+                    <button id="mode-metrics" class="mode-btn">Scoring Metrics</button>
                 </div>
                 <div class="cohort-selector-wrapper">
                     <label for="cohortSelect">Individual Drill-Down:</label>
@@ -193,6 +194,56 @@
                             <polyline points="10 9 9 9 8 9"></polyline>
                         </svg>
                         <p>Select a learner from the directory to view their qualitative synthesis.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- Scoring Metrics View (Initially Hidden) -->
+        <section id="metrics-view" style="display:none;">
+            <div class="metrics-intro glass full-width" style="margin-bottom: 2rem;">
+                <h3>Our Evaluation Framework</h3>
+                <p>The dashboard quantifies subjective learner feedback into systematic metrics using a multi-layered rubric. This ensures consistent analysis across diverse cohorts and tracks cognitive development over time.</p>
+            </div>
+
+            <div class="metrics-grid">
+                <!-- Layer 1 -->
+                <div class="metric-card glass">
+                    <div class="metric-badge">Layer 1</div>
+                    <h4>Learner Progression</h4>
+                    <p class="subtitle">Measures growth across 4 dimensions (Scored 1-3)</p>
+                    <div class="metric-details">
+                        <div class="dimension"><strong>Adoption:</strong> Workflow integration depth.</div>
+                        <div class="dimension"><strong>Specificity:</strong> Concrete use-case detail.</div>
+                        <div class="dimension"><strong>Impact:</strong> Tangible business/work results.</div>
+                        <div class="dimension"><strong>Awareness:</strong> Critical/ethical understanding.</div>
+                    </div>
+                </div>
+
+                <!-- Layer 2 -->
+                <div class="metric-card glass">
+                    <div class="metric-badge">Layer 2</div>
+                    <h4>Weekly Sophistication</h4>
+                    <p class="subtitle">Measures active embedding (Scored 1-4)</p>
+                    <div class="metric-levels">
+                        <div class="level"><span>1</span> <strong>Basic:</strong> Passive or accidental use.</div>
+                        <div class="level"><span>2</span> <strong>Applied:</strong> One-off professional tasks.</div>
+                        <div class="level"><span>3</span> <strong>Integrated:</strong> Repeatable workflows.</div>
+                        <div class="level"><span>4</span> <strong>Systemic:</strong> Multi-tool automations.</div>
+                    </div>
+                </div>
+
+                <!-- Layer 3 -->
+                <div class="metric-card glass">
+                    <div class="metric-badge">Layer 3</div>
+                    <h4>Cognitive Ceiling</h4>
+                    <p class="subtitle">Bloom's Taxonomy adaptation (L1-L6)</p>
+                    <div class="bloom-ladder">
+                        <div class="level"><span>L6</span> <strong>Evaluate:</strong> System testing & refinement.</div>
+                        <div class="level"><span>L5</span> <strong>Create:</strong> Original tool/system architecture.</div>
+                        <div class="level"><span>L4</span> <strong>Analyse:</strong> Critical tool diagnosis & comparison.</div>
+                        <div class="level"><span>L3</span> <strong>Apply:</strong> Consistent functional outputs.</div>
+                        <div class="level"><span>L2</span> <strong>Understand:</strong> Conceptual clarity on AI mechanics.</div>
+                        <div class="level"><span>L1</span> <strong>Remember:</strong> Naming tools without depth.</div>
                     </div>
                 </div>
             </div>

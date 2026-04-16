@@ -123,6 +123,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // 2. Mode Toggles
         document.getElementById('mode-reflections').onclick = () => switchMode('reflections');
         document.getElementById('mode-milestones').onclick = () => switchMode('milestones');
+        document.getElementById('mode-metrics').onclick = () => switchMode('metrics');
 
         // 3. Drill-down Visibility
         selector.onchange = (e) => {
@@ -145,29 +146,46 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
         document.getElementById(`mode-${newMode}`).classList.add('active');
         
-        // Clear State
-        globalData = [];
-        if(summaryChart1) summaryChart1.destroy();
-        if(summaryChart2) summaryChart2.destroy();
-        document.getElementById('cohort-drilldown').style.display = 'none';
-        
-        // Fix for Issue #1: Clear Evaluation Narrative on Mode Switch
-        const narrativeContent = document.getElementById('narrative-content');
-        narrativeContent.innerHTML = `
-            <div class="empty-state">
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                    <polyline points="14 2 14 8 20 8"></polyline>
-                </svg>
-                <p>Mode switched. Select a learner in the new directory to read their narrative evaluation.</p>
-            </div>
-        `;
-        
-        // Reset sorting to default for new dataset
-        currentSort = { column: 'learner_id', direction: 'asc' };
-        
-        // Reload
-        initializeDashboard();
+        const metricsView = document.getElementById('metrics-view');
+        const dataComponents = [
+            document.querySelector('.kpi-grid'),
+            document.querySelector('.charts-grid'),
+            document.querySelector('.detail-grid'),
+            document.querySelector('.cohort-selector-wrapper'),
+            document.querySelector('.status-indicator')
+        ];
+
+        if (newMode === 'metrics') {
+            metricsView.style.display = 'block';
+            dataComponents.forEach(el => { if(el) el.style.display = 'none'; });
+            document.getElementById('cohort-drilldown').style.display = 'none';
+        } else {
+            metricsView.style.display = 'none';
+            dataComponents.forEach(el => { if(el) el.style.display = (el.classList.contains('kpi-grid') || el.classList.contains('charts-grid')) ? 'grid' : 'flex'; });
+            
+            // Re-apply specific displays
+            document.querySelector('.detail-grid').style.display = 'grid';
+            
+            // Clear State and Reload
+            globalData = [];
+            if(summaryChart1) summaryChart1.destroy();
+            if(summaryChart2) summaryChart2.destroy();
+            document.getElementById('cohort-drilldown').style.display = 'none';
+            
+            const narrativeContent = document.getElementById('narrative-content');
+            narrativeContent.innerHTML = `
+                <div class="empty-state">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                    </svg>
+                    <p>Mode switched. Select a learner in the new directory to read their narrative evaluation.</p>
+                </div>
+            `;
+            
+            currentSort = { column: 'learner_id', direction: 'asc' };
+            initializeDashboard();
+        }
     }
 
     function renderTableHeaders() {

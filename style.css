@@ -418,3 +418,77 @@ details p {
 ::-webkit-scrollbar-thumb:hover {
     background: rgba(0, 0, 0, 0.25);
 }
+
+/* Scoring Metrics View Styles */
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+}
+
+.metric-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-height: 400px;
+}
+
+.metric-badge {
+    position: absolute;
+    top: 1rem;
+    right: 1.5rem;
+    background: var(--accent-secondary);
+    color: white;
+    padding: 0.2rem 0.6rem;
+    border-radius: 6px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.metric-card h4 {
+    font-size: 1.1rem;
+    margin-bottom: 0.25rem;
+    color: var(--accent-primary);
+}
+
+.metric-details, .metric-levels, .bloom-ladder {
+    margin-top: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.dimension, .level {
+    font-size: 0.9rem;
+    line-height: 1.4;
+    color: var(--text-primary);
+}
+
+.level {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.level span {
+    background: #f1f5f9;
+    color: var(--text-secondary);
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 0.75rem;
+    flex-shrink: 0;
+}
+
+.bloom-ladder .level:nth-child(1) span { background: #fee2e2; color: #ef4444; } /* L6 */
+.bloom-ladder .level:nth-child(2) span { background: #ffedd5; color: #f97316; } /* L5 */
+.bloom-ladder .level:nth-child(3) span { background: #fef9c3; color: #eab308; } /* L4 */
+.bloom-ladder .level:nth-child(4) span { background: #dcfce7; color: #22c55e; } /* L3 */
+.bloom-ladder .level:nth-child(5) span { background: #e0f2fe; color: #0ea5e9; } /* L2 */
+.bloom-ladder .level:nth-child(6) span { background: #f1f5f9; color: #64748b; } /* L1 */
+
