@@ -26,6 +26,11 @@ document.addEventListener('DOMContentLoaded', () => {
     let drilldownBloomChartObj = null;
     let drilldownSophChartObj = null;
 
+    // Mode Button Initialization (Moved out of data loading for robustness)
+    document.getElementById('mode-reflections').onclick = () => switchMode('reflections');
+    document.getElementById('mode-milestones').onclick = () => switchMode('milestones');
+    document.getElementById('mode-metrics').onclick = () => switchMode('metrics');
+
     // Check if lock is active
     checkLockStatus();
 
@@ -120,10 +125,7 @@ document.addEventListener('DOMContentLoaded', () => {
             selector.appendChild(opt);
         });
 
-        // 2. Mode Toggles
-        document.getElementById('mode-reflections').onclick = () => switchMode('reflections');
-        document.getElementById('mode-milestones').onclick = () => switchMode('milestones');
-        document.getElementById('mode-metrics').onclick = () => switchMode('metrics');
+        // 2. Mode Toggles (Listeners moved to main init block)
 
         // 3. Drill-down Visibility
         selector.onchange = (e) => {
@@ -144,27 +146,25 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // UI Updates
         document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
-        document.getElementById(`mode-${newMode}`).classList.add('active');
+        const activeBtn = document.getElementById(`mode-${newMode}`);
+        if(activeBtn) activeBtn.classList.add('active');
         
         const metricsView = document.getElementById('metrics-view');
-        const dataComponents = [
-            document.querySelector('.kpi-grid'),
-            document.querySelector('.charts-grid'),
-            document.querySelector('.detail-grid'),
-            document.querySelector('.cohort-selector-wrapper'),
-            document.querySelector('.status-indicator')
-        ];
+        const dataView = document.getElementById('data-view');
+        const selector = document.querySelector('.cohort-selector-wrapper');
+        const status = document.querySelector('.status-indicator');
 
         if (newMode === 'metrics') {
-            metricsView.style.display = 'block';
-            dataComponents.forEach(el => { if(el) el.style.display = 'none'; });
+            if(metricsView) metricsView.style.display = 'block';
+            if(dataView) dataView.style.display = 'none';
+            if(selector) selector.style.display = 'none';
+            if(status) status.style.display = 'none';
             document.getElementById('cohort-drilldown').style.display = 'none';
         } else {
-            metricsView.style.display = 'none';
-            dataComponents.forEach(el => { if(el) el.style.display = (el.classList.contains('kpi-grid') || el.classList.contains('charts-grid')) ? 'grid' : 'flex'; });
-            
-            // Re-apply specific displays
-            document.querySelector('.detail-grid').style.display = 'grid';
+            if(metricsView) metricsView.style.display = 'none';
+            if(dataView) dataView.style.display = 'block';
+            if(selector) selector.style.display = 'flex';
+            if(status) status.style.display = 'flex';
             
             // Clear State and Reload
             globalData = [];
@@ -173,15 +173,17 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('cohort-drilldown').style.display = 'none';
             
             const narrativeContent = document.getElementById('narrative-content');
-            narrativeContent.innerHTML = `
-                <div class="empty-state">
-                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                        <polyline points="14 2 14 8 20 8"></polyline>
-                    </svg>
-                    <p>Mode switched. Select a learner in the new directory to read their narrative evaluation.</p>
-                </div>
-            `;
+            if (narrativeContent) {
+                narrativeContent.innerHTML = `
+                    <div class="empty-state">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                        </svg>
+                        <p>Mode switched. Select a learner in the new directory to read their narrative evaluation.</p>
+                    </div>
+                `;
+            }
             
             currentSort = { column: 'learner_id', direction: 'asc' };
             initializeDashboard();

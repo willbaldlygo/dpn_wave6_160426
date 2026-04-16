@@ -127,8 +127,10 @@
             </div>
         </section>
 
-        <!-- KPIs -->
-        <section class="kpi-grid">
+        <!-- Data View Container (For toggling) -->
+        <div id="data-view">
+            <!-- KPIs -->
+            <section class="kpi-grid">
             <div class="kpi-card glass">
                 <h3>Total Learners Analyzed</h3>
                 <h2 id="kpi-total">-</h2>
@@ -197,7 +199,9 @@
                     </div>
                 </div>
             </div>
-        </section>
+            </section>
+        </div>
+
         <!-- Scoring Metrics View (Initially Hidden) -->
         <section id="metrics-view" style="display:none;">
             <div class="metrics-intro glass full-width" style="margin-bottom: 2rem;">
@@ -247,10 +251,59 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Full Rubric Accordion -->
+            <div class="metrics-full-text glass full-width" style="margin-top: 2rem;">
+                <details class="rubric-accordion">
+                    <summary style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; padding: 1rem; background: rgba(59, 130, 246, 0.05); border-radius: 12px; border: 1px solid rgba(59, 130, 246, 0.1);">
+                        <div style="display: flex; align-items: center; gap: 0.75rem;">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                            <span style="font-weight: 700; color: var(--accent-primary);">Detailed Scoring Manual & Question Mapping</span>
+                        </div>
+                        <span style="font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 600;">Expand for colleagues</span>
+                    </summary>
+                    <div style="padding: 2rem; background: white; border-radius: 0 0 12px 12px; border-top: none; line-height: 1.6;">
+                        <div style="margin-bottom: 2rem;">
+                            <h4 style="color: var(--accent-primary); margin-top: 0; font-size: 1.2rem;">The Objective</h4>
+                            <p style="color: var(--text-primary); margin-top: 0.5rem;">To systematically quantify string responses to understand if learners moved from mere awareness or early experimentation to active, embedded integration of AI tools in their daily work.</p>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+                            <div>
+                                <h4 style="color: var(--accent-primary); font-size: 1.1rem;">Layer 1: Dimensions (Scored 1-3)</h4>
+                                <ul style="padding-left: 1.2rem; margin-top: 0.8rem; color: var(--text-primary); font-size: 0.95rem; list-style-type: square;">
+                                    <li style="margin-bottom: 0.6rem;"><strong>AI Adoption Level:</strong> Workflow integration depth.</li>
+                                    <li style="margin-bottom: 0.6rem;"><strong>Specificity of Application:</strong> Concrete description detail.</li>
+                                    <li style="margin-bottom: 0.6rem;"><strong>Business/Work Impact:</strong> Tangible growth or measurable time.</li>
+                                    <li style="margin-bottom: 0.6rem;"><strong>AI Self-Awareness:</strong> Critical understanding / Human-in-loop.</li>
+                                </ul>
+                            </div>
+                            <div style="background: #f8fafc; padding: 1.5rem; border-radius: 12px; border: 1px solid #e2e8f0;">
+                                <h4 style="color: var(--accent-primary); font-size: 1.1rem; margin-top: 0;">Question Mapping</h4>
+                                <div style="margin-top: 1rem; font-size: 0.85rem; color: var(--text-primary);">
+                                    <p style="margin-bottom: 0.75rem;"><strong>Baseline (Both):</strong> D1: Q4 | D2: Q4+5 | D4: Q5+7</p>
+                                    <p style="margin-bottom: 0.75rem;"><strong>Outcomes (Entrepreneur):</strong> D1: Q5 | D2: Q7 | D3: Q8 | D4: Q5+9</p>
+                                    <p><strong>Outcomes (Employed):</strong> D1: Q5 | D2: Q6 | D3: Q7 | D4: Q5+8</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="border-left: 4px solid var(--accent-secondary); padding-left: 1.5rem; background: rgba(139, 92, 246, 0.05); padding: 1.5rem; border-radius: 0 12px 12px 0;">
+                            <h4 style="color: var(--accent-secondary); margin-top: 0; font-size: 1.1rem;">Critical Scoring Rules</h4>
+                            <ul style="margin-top: 0.8rem; font-size: 0.9rem; color: var(--text-primary); padding-left: 1.2rem;">
+                                <li style="margin-bottom: 0.4rem;">Never make causal claims; frame as "learners reported."</li>
+                                <li style="margin-bottom: 0.4rem;">Only score complete pairs (Baseline + Outcomes).</li>
+                                <li>Flag dual-track learners before analysis to ensure correct context.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </details>
+            </div>
         </section>
+
     </div>
 
     <!-- Application Logic -->
-    <script src="app.js?v=2"></script>
+    <script src="app.js?v=3"></script>
 </body>
 </html>
