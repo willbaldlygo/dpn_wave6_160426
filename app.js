@@ -24,6 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let summaryChart1 = null;
     let summaryChart2 = null;
     let drilldownBloomChartObj = null;
+    let drilldownPeakSophChartObj = null;
     let drilldownSophChartObj = null;
 
     // Mode Button Initialization (Moved out of data loading for robustness)
@@ -79,7 +80,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function initializeDashboard(isAttempt = false) {
-        const url = FILES[currentMode];
+        const baseUrl = FILES[currentMode];
+        const url = baseUrl + '?v=' + Date.now();
         
         document.getElementById('data-status').innerText = "Loading...";
         document.querySelector('.pulse-dot').style.backgroundColor = 'var(--text-secondary)';
@@ -134,8 +136,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 renderDrilldown(val);
                 document.getElementById('cohort-drilldown').style.display = 'grid';
                 document.getElementById('drilldown-id').innerText = val;
+                
+                const cohortLearners = globalData.filter(r => r.course_id == val);
+                updateKPIs(cohortLearners);
+                const globalCharts = document.getElementById('global-charts');
+                if (globalCharts) globalCharts.style.display = 'none';
             } else {
                 document.getElementById('cohort-drilldown').style.display = 'none';
+                updateKPIs(globalData);
+                const globalCharts = document.getElementById('global-charts');
+                if (globalCharts) globalCharts.style.display = 'grid';
             }
         };
     }
@@ -171,6 +181,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if(summaryChart1) summaryChart1.destroy();
             if(summaryChart2) summaryChart2.destroy();
             document.getElementById('cohort-drilldown').style.display = 'none';
+            const globalCharts = document.getElementById('global-charts');
+            if (globalCharts) globalCharts.style.display = 'grid';
             
             const narrativeContent = document.getElementById('narrative-content');
             if (narrativeContent) {
@@ -197,18 +209,18 @@ document.addEventListener('DOMContentLoaded', () => {
             headerRow.innerHTML = `
                 <th data-col="learner_id">ID</th>
                 <th data-col="course_id">Cohort</th>
-                <th data-col="peak_bloom_score">Peak Bloom</th>
-                <th data-col="peak_sophistication">Peak Soph.</th>
-                <th data-col="mean_sophistication">Mean Soph.</th>
+                <th data-col="peak_bloom_score">Peak Comp.</th>
+                <th data-col="peak_sophistication">Peak Tech.</th>
+                <th data-col="mean_sophistication">Mean Tech.</th>
             `;
         } else {
             headerRow.innerHTML = `
                 <th data-col="learner_id">ID</th>
                 <th data-col="course_id">Cohort</th>
-                <th data-col="base_bloom">Base Bloom</th>
-                <th data-col="out_bloom">Out Bloom</th>
-                <th data-col="base_sophistication">Base Soph.</th>
-                <th data-col="out_sophistication">Out Soph.</th>
+                <th data-col="base_bloom">Base Comp.</th>
+                <th data-col="out_bloom">Out Comp.</th>
+                <th data-col="base_sophistication">Base Tech.</th>
+                <th data-col="out_sophistication">Out Tech.</th>
             `;
         }
         
@@ -233,9 +245,53 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    function updateKPIs(dataset) {
+        document.getElementById('kpi-total').innerText = dataset.length;
+        const bloomMap = { 'L1':1, 'L2':2, 'L3':3, 'L4':4, 'L5':5, 'L6':6 };
+
+        if (currentMode === 'reflections') {
+            document.getElementById('kpi-2-label').innerText = "Overall Avg Technical Score";
+            document.getElementById('kpi-3-label').innerText = "Overall AVG Peak Comprehension Score";
+            document.getElementById('kpi-3-subtitle').innerText = "Out of 6";
+
+            let sumMeanSoph = 0;
+            let totalBloomSum = 0;
+            let totalBloomCount = 0;
+
+            dataset.forEach(row => {
+                sumMeanSoph += row.mean_sophistication || 0;
+                if(row.peak_bloom_score) {
+                    let match = row.peak_bloom_score.match(/(L[1-6])/);
+                    if(match) {
+                        totalBloomSum += bloomMap[match[1]];
+                        totalBloomCount++;
+                    }
+                }
+            });
+
+            document.getElementById('kpi-score').innerText = (sumMeanSoph / (dataset.length || 1)).toFixed(2);
+            let avgBloom = totalBloomCount > 0 ? "L" + (totalBloomSum / totalBloomCount).toFixed(2) : "-";
+            document.getElementById('kpi-bloom').innerText = avgBloom;
+            
+        } else {
+            document.getElementById('kpi-2-label').innerText = "Avg Final Technical Score";
+            document.getElementById('kpi-3-label').innerText = "AVG Technical Improvement";
+            document.getElementById('kpi-3-subtitle').innerText = "Average difference between first and last milestone scores";
+
+            let totalBaseSoph = 0, totalOutSoph = 0;
+            dataset.forEach(row => {
+                totalBaseSoph += row.base_sophistication || 0;
+                totalOutSoph += row.out_sophistication || 0;
+            });
+
+            const avgFinal = (totalOutSoph / (dataset.length || 1)).toFixed(2);
+            document.getElementById('kpi-score').innerText = avgFinal;
+            document.getElementById('kpi-bloom').innerText = "+" + ((totalOutSoph - totalBaseSoph) / (dataset.length || 1)).toFixed(2);
+        }
+    }
+
     function processDataAndRender() {
-        const totalLearners = globalData.length;
-        document.getElementById('kpi-total').innerText = totalLearners;
+        updateKPIs(globalData);
 
         if (currentMode === 'reflections') {
             renderReflectionsDashboard();
@@ -246,22 +302,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderReflectionsDashboard() {
-        let sumMeanSoph = 0;
-        let bloomCounts = { 'L1':0, 'L2':0, 'L3':0, 'L4':0, 'L5':0, 'L6':0 };
         let cohortData = {}; 
         const bloomMap = { 'L1':1, 'L2':2, 'L3':3, 'L4':4, 'L5':5, 'L6':6 };
 
-        // Reset KPI Labels for Reflections
-        document.getElementById('kpi-2-label').innerText = "Overall Avg Sophistication Score";
-        document.getElementById('kpi-3-label').innerText = "Primary Bloom Ceiling";
-        document.getElementById('kpi-3-subtitle').innerText = "Most frequent cognitive level";
-
         globalData.forEach(row => {
-            sumMeanSoph += row.mean_sophistication || 0;
-            if(row.peak_bloom_score) {
-                let match = row.peak_bloom_score.match(/(L[1-6])/);
-                if(match) bloomCounts[match[1]]++;
-            }
             const cid = row.course_id;
             if(cid) {
                 if(!cohortData[cid]) cohortData[cid] = { sophSum: 0, bloomSum: 0, count: 0 };
@@ -272,20 +316,12 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        document.getElementById('kpi-score').innerText = (sumMeanSoph / (globalData.length || 1)).toFixed(2);
-        
-        let primaryBloom = '-'; let maxCount = 0;
-        for(let [level, count] of Object.entries(bloomCounts)) {
-            if(count > maxCount) { maxCount = count; primaryBloom = level; }
-        }
-        document.getElementById('kpi-bloom').innerText = primaryBloom;
-
         const cids = Object.keys(cohortData).sort();
         renderSummaryCharts(
             cids.map(cid => `Cohort ${cid}`), 
             cids.map(cid => (cohortData[cid].bloomSum / cohortData[cid].count).toFixed(2)),
             cids.map(cid => (cohortData[cid].sophSum / cohortData[cid].count).toFixed(2)),
-            'Mean Bloom Level', 'Mean Sophistication'
+            'Mean Peak Comprehension Level', 'Mean Technical Score'
         );
     }
 
@@ -293,16 +329,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let cohortData = {}; // { cid: { baseSophSum, outSophSum, baseBloomSum, outBloomSum, count } }
         const bloomMap = { 'L1':1, 'L2':2, 'L3':3, 'L4':4, 'L5':5, 'L6':6 };
         
-        // Update KPI Labels for Milestones
-        document.getElementById('kpi-2-label').innerText = "Avg Final Sophistication Score";
-        document.getElementById('kpi-3-label').innerText = "AVG Sophistication Improvement";
-        document.getElementById('kpi-3-subtitle').innerText = "Average difference between first and last milestone scores";
-        let totalBaseSoph = 0, totalOutSoph = 0;
-
         globalData.forEach(row => {
-            totalBaseSoph += row.base_sophistication || 0;
-            totalOutSoph += row.out_sophistication || 0;
-            
             const cid = row.course_id;
             if(cid) {
                 if(!cohortData[cid]) cohortData[cid] = { bS: 0, oS: 0, bB: 0, oB: 0, count: 0 };
@@ -313,10 +340,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 cohortData[cid].count++;
             }
         });
-
-        const avgFinal = (totalOutSoph / (globalData.length || 1)).toFixed(2);
-        document.getElementById('kpi-score').innerText = avgFinal;
-        document.getElementById('kpi-bloom').innerText = "+" + ((totalOutSoph - totalBaseSoph) / (globalData.length || 1)).toFixed(2);
 
         const cids = Object.keys(cohortData).sort();
         const labels = cids.map(cid => `Cohort ${cid}`);
@@ -338,14 +361,14 @@ document.addEventListener('DOMContentLoaded', () => {
             type: 'bar',
             data: { labels, datasets: [{ label: label1, data: data1, backgroundColor: 'rgba(59, 130, 246, 0.8)', borderRadius: 6 }] },
             options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
-                       scales: { y: { min: 1, max: 6, ticks: { callback: v => 'L' + v } }, x: { grid: { display: false } } } }
+                       scales: { y: { min: 0, max: 6, ticks: { callback: v => 'L' + v } }, x: { grid: { display: false } } } }
         });
         
         summaryChart2 = new Chart(ctx2, {
             type: 'bar',
             data: { labels, datasets: [{ label: label2, data: data2, backgroundColor: 'rgba(139, 92, 246, 0.8)', borderRadius: 6 }] },
             options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
-                       scales: { y: { min: 1, max: 4 }, x: { grid: { display: false } } } }
+                       scales: { y: { min: 0, max: 4 }, x: { grid: { display: false } } } }
         });
     }
 
@@ -359,7 +382,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     { label: 'Outcomes', data: oB, backgroundColor: 'rgba(59, 130, 246, 0.8)', borderRadius: 4 }
                 ]
             },
-            options: { responsive: true, maintainAspectRatio: false, scales: { y: { min: 1, max: 6, ticks: { callback: v => 'L' + v } } } }
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { min: 0, max: 6, ticks: { callback: v => 'L' + v } } } }
         });
 
         summaryChart2 = new Chart(document.getElementById('trajectoryChart'), {
@@ -371,7 +394,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     { label: 'Outcomes', data: oS, backgroundColor: 'rgba(139, 92, 246, 0.8)', borderRadius: 4 }
                 ]
             },
-            options: { responsive: true, maintainAspectRatio: false, scales: { y: { min: 1, max: 4 } } }
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { min: 0, max: 4 } } }
         });
     }
 
@@ -428,6 +451,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const bloomMap = { 'L1':1, 'L2':2, 'L3':3, 'L4':4, 'L5':5, 'L6':6 };
 
         if(drilldownBloomChartObj) drilldownBloomChartObj.destroy();
+        if(drilldownPeakSophChartObj) drilldownPeakSophChartObj.destroy();
         if(drilldownSophChartObj) drilldownSophChartObj.destroy();
 
         const commonOptions = {
@@ -436,24 +460,39 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         if (currentMode === 'reflections') {
+            document.getElementById('drilldown-col-2').style.display = 'block';
+            document.getElementById('drilldown-col-3').style.gridColumn = 'span 2';
+            document.getElementById('drilldown-title-1').innerText = "Peak Comprehension Score";
+            document.getElementById('drilldown-title-3').innerText = "Mean Technical Score";
+
             drilldownBloomChartObj = new Chart(document.getElementById('drilldownBloomChart'), {
                 type: 'bar',
-                data: { labels, datasets: [{ label: 'Bloom', data: cohortLearners.map(r => bloomMap[r.peak_bloom_score] || 0), backgroundColor: 'rgba(59, 130, 246, 0.6)' }] },
-                options: { ...commonOptions, plugins: { legend: { display: false } }, scales: { ...commonOptions.scales, y: { min: 1, max: 6, ticks: { callback: v => 'L' + v } } } }
+                data: { labels, datasets: [{ label: 'Comp.', data: cohortLearners.map(r => bloomMap[r.peak_bloom_score] || 0), backgroundColor: 'rgba(59, 130, 246, 0.6)' }] },
+                options: { ...commonOptions, plugins: { legend: { display: false } }, scales: { ...commonOptions.scales, y: { min: 0, max: 6, ticks: { callback: v => 'L' + v } } } }
+            });
+            drilldownPeakSophChartObj = new Chart(document.getElementById('drilldownPeakSophChart'), {
+                type: 'bar',
+                data: { labels, datasets: [{ label: 'Peak Tech.', data: cohortLearners.map(r => r.peak_sophistication || 0), backgroundColor: 'rgba(236, 72, 153, 0.6)' }] },
+                options: { ...commonOptions, plugins: { legend: { display: false } }, scales: { ...commonOptions.scales, y: { min: 0, max: 4 } } }
             });
             drilldownSophChartObj = new Chart(document.getElementById('drilldownSophChart'), {
                 type: 'bar',
-                data: { labels, datasets: [{ label: 'Soph', data: cohortLearners.map(r => r.mean_sophistication || 0), backgroundColor: 'rgba(139, 92, 246, 0.6)' }] },
-                options: { ...commonOptions, plugins: { legend: { display: false } }, scales: { ...commonOptions.scales, y: { min: 1, max: 4 } } }
+                data: { labels, datasets: [{ label: 'Tech.', data: cohortLearners.map(r => r.mean_sophistication || 0), backgroundColor: 'rgba(139, 92, 246, 0.6)' }] },
+                options: { ...commonOptions, plugins: { legend: { display: false } }, scales: { ...commonOptions.scales, y: { min: 0, max: 4 } } }
             });
         } else {
+            document.getElementById('drilldown-col-2').style.display = 'none';
+            document.getElementById('drilldown-col-3').style.gridColumn = 'span 1';
+            document.getElementById('drilldown-title-1').innerText = "Comprehension Score (Base vs Out)";
+            document.getElementById('drilldown-title-3').innerText = "Technical Score (Base vs Out)";
+
             drilldownBloomChartObj = new Chart(document.getElementById('drilldownBloomChart'), {
                 type: 'bar',
                 data: { labels, datasets: [
                     { label: 'Base', data: cohortLearners.map(r => bloomMap[r.base_bloom] || 0), backgroundColor: 'rgba(203, 213, 225, 0.6)' },
                     { label: 'Out', data: cohortLearners.map(r => bloomMap[r.out_bloom] || 0), backgroundColor: 'rgba(59, 130, 246, 0.6)' }
                 ]},
-                options: { ...commonOptions, scales: { ...commonOptions.scales, y: { min: 1, max: 6, ticks: { callback: v => 'L' + v } } } }
+                options: { ...commonOptions, scales: { ...commonOptions.scales, y: { min: 0, max: 6, ticks: { callback: v => 'L' + v } } } }
             });
             drilldownSophChartObj = new Chart(document.getElementById('drilldownSophChart'), {
                 type: 'bar',
@@ -461,7 +500,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     { label: 'Base', data: cohortLearners.map(r => r.base_sophistication || 0), backgroundColor: 'rgba(203, 213, 225, 0.6)' },
                     { label: 'Out', data: cohortLearners.map(r => r.out_sophistication || 0), backgroundColor: 'rgba(139, 92, 246, 0.6)' }
                 ]},
-                options: { ...commonOptions, scales: { ...commonOptions.scales, y: { min: 1, max: 4 } } }
+                options: { ...commonOptions, scales: { ...commonOptions.scales, y: { min: 0, max: 4 } } }
             });
         }
     }
