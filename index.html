@@ -1,346 +1,221 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Bootcamp Progression Dashboard</title>
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- PapaParse -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-    <link rel="stylesheet" href="style.css?v=5">
-    <style>
-        #password-gate {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(240, 253, 244, 0.4);
-            backdrop-filter: blur(25px);
-            -webkit-backdrop-filter: blur(25px);
-            z-index: 10000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: opacity 0.5s ease, visibility 0.5s ease;
-        }
-
-        #password-gate.hidden {
-            opacity: 0;
-            visibility: hidden;
-        }
-
-        .login-card {
-            background: white;
-            padding: 3rem;
-            border-radius: 24px;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.1);
-            text-align: center;
-            max-width: 400px;
-            width: 90%;
-            border: 1px solid rgba(255, 255, 255, 0.5);
-        }
-
-        .login-card h2 {
-            margin-bottom: 0.5rem;
-            color: #1e293b;
-        }
-
-        .login-card p {
-            color: #64748b;
-            font-size: 0.9rem;
-            margin-bottom: 2rem;
-        }
-
-        .login-card input {
-            width: 100%;
-            padding: 1rem;
-            border-radius: 12px;
-            border: 1px solid #e2e8f0;
-            margin-bottom: 1rem;
-            font-size: 1rem;
-            outline: none;
-            transition: border-color 0.2s;
-        }
-
-        .login-card input:focus {
-            border-color: #3b82f6;
-        }
-
-        .login-card button {
-            width: 100%;
-            padding: 1rem;
-            border-radius: 12px;
-            background: #3b82f6;
-            color: white;
-            border: none;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .login-card button:hover {
-            background: #2563eb;
-        }
-
-        #login-error {
-            color: #ef4444;
-            font-size: 0.85rem;
-            margin-top: 1rem;
-            display: none;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wave 6 Learner Progression — DPN</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 </head>
-
 <body>
-    <div id="password-gate">
-        <div class="login-card">
-            <h2>Restricted Access</h2>
-            <p>Please enter the dashboard password to continue.</p>
-            <input type="password" id="dashboard-password" placeholder="Password" autofocus>
-            <button id="unlock-btn">Unlock Dashboard</button>
-            <p id="login-error">Incorrect password. Please try again.</p>
-        </div>
+
+<!-- ── Password Gate ─────────────────────────────────────────── -->
+<div id="password-gate">
+  <div class="login-card">
+    <div class="logo-wrap">
+      <img src="assets/dpn-logo.png" alt="DPN logo">
     </div>
+    <h2>Restricted Access</h2>
+    <p>Enter the dashboard password to continue.</p>
+    <input type="password" id="dashboard-password" placeholder="Password" autofocus>
+    <button id="unlock-btn">Unlock Dashboard</button>
+    <p id="login-error">Incorrect password. Please try again.</p>
+  </div>
+</div>
 
-    <div class="dashboard-container">
-        <!-- Header -->
-        <header class="header">
-            <div class="header-text">
-                <h1>Wave 6 Learner Progression</h1>
-                <p>Analysis of learner responses to Milestone Surveys (Business Plans) and weekly RAG Quizzes</p>
+<!-- ── App Shell ──────────────────────────────────────────────── -->
+<div class="dashboard-wrap">
+
+  <!-- Header -->
+  <header class="site-header">
+    <div class="logo">
+      <img src="assets/dpn-logo.png" alt="DPN">
+    </div>
+    <div class="header-title">
+      <h1>Wave 6 Learner Progression</h1>
+      <p>Analysis of learner responses to Milestone Surveys (Business Plans) and weekly RAG Quizzes</p>
+    </div>
+    <nav class="mode-nav">
+      <button id="mode-reflections" class="mode-btn active">AI Use RAG</button>
+      <button id="mode-milestones" class="mode-btn">Milestone Progression</button>
+      <button id="mode-metrics" class="mode-btn">Scoring Metrics</button>
+    </nav>
+    <div class="header-controls">
+      <div class="cohort-selector-wrapper" id="cohort-selector-wrapper">
+        <label for="cohortSelect">Individual Drill-Down:</label>
+        <select id="cohortSelect" class="glass-select">
+          <option value="">Select Cohort...</option>
+        </select>
+      </div>
+      <div class="status-pill" id="status-pill">
+        <span class="pulse-dot" id="pulse-dot"></span>
+        <span id="data-status">Loading...</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="dashboard-main">
+
+    <!-- ── Drilldown Section ──────────────────────────────────── -->
+    <section class="drilldown-section" id="cohort-drilldown">
+      <div class="card">
+        <div class="card-title">Cohort <span id="drilldown-id"></span>: Individual Performance Spread</div>
+        <div class="drilldown-inner">
+          <div id="drilldown-col-1">
+            <h4 id="drilldown-title-1">Peak Comprehension Score</h4>
+            <div class="chart-container mini"><canvas id="drilldownBloomChart"></canvas></div>
+          </div>
+          <div id="drilldown-col-2">
+            <h4>Peak Technical Score</h4>
+            <div class="chart-container mini"><canvas id="drilldownPeakSophChart"></canvas></div>
+          </div>
+          <div id="drilldown-col-3" class="span-2">
+            <h4 id="drilldown-title-3">Mean Technical Score</h4>
+            <div class="chart-container mini"><canvas id="drilldownSophChart"></canvas></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Data View ──────────────────────────────────────────── -->
+    <div id="data-view">
+
+      <!-- KPIs -->
+      <section class="kpi-grid">
+        <div class="card kpi-card">
+          <h3>Total Learners Analysed</h3>
+          <div class="kpi-value" id="kpi-total">—</div>
+        </div>
+        <div class="card kpi-card">
+          <h3 id="kpi-2-label">Overall Avg Technical Score</h3>
+          <div class="kpi-value" id="kpi-score">—</div>
+          <p class="kpi-sub">Out of 4.0</p>
+        </div>
+        <div class="card kpi-card">
+          <h3 id="kpi-3-label">Overall Avg Peak Comprehension Score</h3>
+          <div class="kpi-value" id="kpi-bloom">—</div>
+          <p class="kpi-sub" id="kpi-3-subtitle">Out of 6</p>
+        </div>
+      </section>
+
+      <!-- Charts -->
+      <section class="charts-grid" id="global-charts">
+        <div class="card chart-card">
+          <h3>Mean Peak Comprehension Score by Cohort</h3>
+          <div class="chart-container"><canvas id="bloomChart"></canvas></div>
+        </div>
+        <div class="card chart-card">
+          <h3>Mean Technical Score by Cohort</h3>
+          <div class="chart-container"><canvas id="trajectoryChart"></canvas></div>
+        </div>
+      </section>
+
+      <!-- Detail Row -->
+      <section class="detail-grid">
+        <div class="card table-card">
+          <h3>Learner Directory</h3>
+          <p class="subtitle">Select a learner to read their narrative evaluation.</p>
+          <div class="table-wrap">
+            <table id="learnerTable">
+              <thead>
+                <tr id="dynamic-table-header">
+                  <th>ID</th>
+                  <th>Peak Comp.</th>
+                  <th>Peak Tech.</th>
+                  <th>Mean Tech.</th>
+                </tr>
+              </thead>
+              <tbody id="learnerTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card eval-card">
+          <h3>Evaluation Narrative</h3>
+          <div id="narrative-content" class="narrative-content">
+            <div class="empty-state">
+              <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+              </svg>
+              <p>Select a learner from the directory to view their qualitative synthesis.</p>
             </div>
-            <div class="header-actions">
-                <div class="mode-toggle glass">
-                    <button id="mode-reflections" class="mode-btn active">AI Use RAG</button>
-                    <button id="mode-milestones" class="mode-btn">Milestone Progression</button>
-                    <button id="mode-metrics" class="mode-btn">Scoring Metrics</button>
-                </div>
-                <div class="cohort-selector-wrapper">
-                    <label for="cohortSelect">Individual Drill-Down:</label>
-                    <select id="cohortSelect" class="glass-select">
-                        <option value="">Select Cohort...</option>
-                    </select>
-                </div>
-                <div class="status-indicator">
-                    <span class="pulse-dot"></span>
-                    <span id="data-status">Loading Data...</span>
-                </div>
-            </div>
-        </header>
+          </div>
+        </div>
+      </section>
 
-        <!-- Cohort Individual Drill-Down Section (Initially hidden) -->
-        <section id="cohort-drilldown" class="charts-grid tertiary" style="display:none;">
-            <div class="chart-card glass full-width">
-                <h3>Cohort <span id="drilldown-id"></span>: Individual Performance Spread</h3>
-                <div class="drilldown-charts-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
-                    <div class="chart-item" id="drilldown-col-1">
-                        <h4 id="drilldown-title-1">Peak Comprehension Score</h4>
-                        <div class="chart-container mini">
-                            <canvas id="drilldownBloomChart"></canvas>
-                        </div>
-                    </div>
-                    <div class="chart-item" id="drilldown-col-2">
-                        <h4>Peak Technical Score</h4>
-                        <div class="chart-container mini">
-                            <canvas id="drilldownPeakSophChart"></canvas>
-                        </div>
-                    </div>
-                    <div class="chart-item" id="drilldown-col-3" style="grid-column: span 2;">
-                        <h4 id="drilldown-title-3">Mean Technical Score</h4>
-                        <div class="chart-container mini">
-                            <canvas id="drilldownSophChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
+    </div><!-- /#data-view -->
 
-        <!-- Data View Container (For toggling) -->
-        <div id="data-view">
-            <!-- KPIs -->
-            <section class="kpi-grid">
-                <div class="kpi-card glass">
-                    <h3>Total Learners Analyzed</h3>
-                    <h2 id="kpi-total">-</h2>
-                </div>
-                <div class="kpi-card glass">
-                    <h3 id="kpi-2-label">Overall Avg Technical Score</h3>
-                    <h2 id="kpi-score">-</h2>
-                    <p class="kpi-subtitle">Out of 4.0</p>
-                </div>
-                <div class="kpi-card glass">
-                    <h3 id="kpi-3-label">Overall AVG Peak Comprehension Score</h3>
-                    <h2 id="kpi-bloom">-</h2>
-                    <p id="kpi-3-subtitle" class="kpi-subtitle"></p>
-                </div>
-            </section>
+    <!-- ── Scoring Metrics View ───────────────────────────────── -->
+    <section id="metrics-view">
+      <div class="card metrics-intro">
+        <h3>Our Evaluation Framework</h3>
+        <p>The dashboard quantifies subjective learner feedback into systematic metrics using a multi-layered rubric. This ensures consistent analysis across diverse cohorts and tracks cognitive development over time.</p>
+      </div>
 
-            <!-- Charts Row -->
-            <section id="global-charts" class="charts-grid">
-                <div class="chart-card glass">
-                    <h3>Mean Peak Comprehension Score by Cohort</h3>
-                    <div class="chart-container">
-                        <canvas id="bloomChart"></canvas>
-                    </div>
-                </div>
-                <div class="chart-card glass">
-                    <h3>Mean Technical Score by Cohort</h3>
-                    <div class="chart-container">
-                        <canvas id="trajectoryChart"></canvas>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Data Grid & Detail View Row -->
-            <section class="detail-grid">
-                <div class="table-card glass">
-                    <h3>Learner Directory</h3>
-                    <p class="subtitle">Select a learner to read their narrative evaluation.</p>
-                    <div class="table-container">
-                        <table id="learnerTable">
-                            <thead>
-                                <tr id="dynamic-table-header">
-                                    <th>Learner ID</th>
-                                    <th>Peak Comp.</th>
-                                    <th>Peak Tech.</th>
-                                    <th>Mean Tech.</th>
-                                </tr>
-                            </thead>
-                            <tbody id="learnerTableBody">
-                                <!-- Populated dynamically -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                <div class="evaluation-card glass">
-                    <h3>Evaluation Narrative</h3>
-                    <div id="narrative-content" class="narrative-content">
-                        <div class="empty-state">
-                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                                <polyline points="14 2 14 8 20 8"></polyline>
-                                <line x1="16" y1="13" x2="8" y2="13"></line>
-                                <line x1="16" y1="17" x2="8" y2="17"></line>
-                                <polyline points="10 9 9 9 8 9"></polyline>
-                            </svg>
-                            <p>Select a learner from the directory to view their qualitative synthesis.</p>
-                        </div>
-                    </div>
-                </div>
-            </section>
+      <div class="metrics-grid">
+        <!-- Layer 2 -->
+        <div class="card metric-card">
+          <div class="metric-badge">Layer 2</div>
+          <h4>Weekly Technical Ratings</h4>
+          <p class="subtitle">Measures active embedding (Scored 1–4)</p>
+          <div class="metric-levels">
+            <div class="level"><span>1</span> <div><strong>Basic:</strong> Passive or accidental use.</div></div>
+            <div class="level"><span>2</span> <div><strong>Applied:</strong> One-off professional tasks.</div></div>
+            <div class="level"><span>3</span> <div><strong>Integrated:</strong> Repeatable workflows.</div></div>
+            <div class="level"><span>4</span> <div><strong>Systemic:</strong> Multi-tool automations.</div></div>
+          </div>
         </div>
 
-        <!-- Scoring Metrics View (Initially Hidden) -->
-        <section id="metrics-view" style="display:none;">
-            <div class="metrics-intro glass full-width" style="margin-bottom: 2rem;">
-                <h3>Our Evaluation Framework</h3>
-                <p>The dashboard quantifies subjective learner feedback into systematic metrics using a multi-layered
-                    rubric. This ensures consistent analysis across diverse cohorts and tracks cognitive development
-                    over time.</p>
-            </div>
+        <!-- Layer 3 -->
+        <div class="card metric-card">
+          <div class="metric-badge">Layer 3</div>
+          <h4>Comprehension Ratings</h4>
+          <p class="subtitle">Bloom's Taxonomy adaptation (L1–L6)</p>
+          <div class="bloom-ladder">
+            <div class="level"><span>L6</span> <div><strong>Evaluate:</strong> System testing &amp; refinement.</div></div>
+            <div class="level"><span>L5</span> <div><strong>Create:</strong> Original tool/system architecture.</div></div>
+            <div class="level"><span>L4</span> <div><strong>Analyse:</strong> Critical tool diagnosis &amp; comparison.</div></div>
+            <div class="level"><span>L3</span> <div><strong>Apply:</strong> Consistent functional outputs.</div></div>
+            <div class="level"><span>L2</span> <div><strong>Understand:</strong> Conceptual clarity on AI mechanics.</div></div>
+            <div class="level"><span>L1</span> <div><strong>Remember:</strong> Naming tools without depth.</div></div>
+          </div>
+        </div>
+      </div>
 
-            <div class="metrics-grid">
-                <!-- Layer 2 -->
-                <div class="metric-card glass">
-                    <div class="metric-badge">Layer 2</div>
-                    <h4>Weekly Technical Ratings</h4>
-                    <p class="subtitle">Measures active embedding (Scored 1-4)</p>
-                    <div class="metric-levels">
-                        <div class="level"><span>1</span> <strong>Basic:</strong> Passive or accidental use.</div>
-                        <div class="level"><span>2</span> <strong>Applied:</strong> One-off professional tasks.</div>
-                        <div class="level"><span>3</span> <strong>Integrated:</strong> Repeatable workflows.</div>
-                        <div class="level"><span>4</span> <strong>Systemic:</strong> Multi-tool automations.</div>
-                    </div>
-                </div>
+      <!-- Full Rubric -->
+      <div class="card">
+        <details class="rubric-accordion">
+          <summary>Expand for Detailed Scoring Rubric &amp; Question Mapping</summary>
+          <div class="rubric-detail-body">
+            <h2>Technical &amp; Comprehension Framework</h2>
+            <h3>Weekly Technical Ratings (1–4)</h3>
+            <ul>
+              <li><strong>1 — Basic / Passive:</strong> Minimal, low-stakes, or personal AI use.</li>
+              <li><strong>2 — Applied:</strong> Real professional tasks, but discrete or "one-off".</li>
+              <li><strong>3 — Integrated:</strong> Embedded in ongoing work; repeatable workflows.</li>
+              <li><strong>4 — Systemic:</strong> Building tools for others; multi-tool automated pipelines.</li>
+            </ul>
+            <h3>Comprehension Ratings (L1–L6)</h3>
+            <ul>
+              <li><strong>L1 (Remember):</strong> Names tools and activities only.</li>
+              <li><strong>L2 (Understand):</strong> Conceptual understanding of why AI works.</li>
+              <li><strong>L3 (Apply):</strong> Professional tasks with functional outputs.</li>
+              <li><strong>L4 (Analyse):</strong> Breaks problems down; tool comparison and diagnosis.</li>
+              <li><strong>L5 (Create):</strong> Builds original AI tools or systems.</li>
+              <li><strong>L6 (Evaluate):</strong> Tests, identifies failure points, and adapts systems.</li>
+            </ul>
+          </div>
+        </details>
+      </div>
+    </section>
 
-                <!-- Layer 3 -->
-                <div class="metric-card glass">
-                    <div class="metric-badge">Layer 3</div>
-                    <h4>Comprehension Ratings</h4>
-                    <p class="subtitle">Bloom's Taxonomy adaptation (L1-L6)</p>
-                    <div class="bloom-ladder">
-                        <div class="level"><span>L6</span> <strong>Evaluate:</strong> System testing & refinement.</div>
-                        <div class="level"><span>L5</span> <strong>Create:</strong> Original tool/system architecture.
-                        </div>
-                        <div class="level"><span>L4</span> <strong>Analyse:</strong> Critical tool diagnosis &
-                            comparison.</div>
-                        <div class="level"><span>L3</span> <strong>Apply:</strong> Consistent functional outputs.</div>
-                        <div class="level"><span>L2</span> <strong>Understand:</strong> Conceptual clarity on AI
-                            mechanics.</div>
-                        <div class="level"><span>L1</span> <strong>Remember:</strong> Naming tools without depth.</div>
-                    </div>
-                </div>
-            </div>
+  </main>
+</div><!-- /.dashboard-wrap -->
 
-            <!-- Full Rubric Accordion -->
-            <div class="metrics-full-text glass full-width" style="margin-top: 2rem;">
-                <details class="rubric-accordion">
-                    <summary
-                        style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; padding: 1rem; background: rgba(59, 130, 246, 0.05); border-radius: 12px; border: 1px solid rgba(59, 130, 246, 0.1);">
-                        <div style="display: flex; align-items: center; gap: 0.75rem;">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                                <polyline points="14 2 14 8 20 8" />
-                                <line x1="16" y1="13" x2="8" y2="13" />
-                                <line x1="16" y1="17" x2="8" y2="17" />
-                                <polyline points="10 9 9 9 8 9" />
-                            </svg>
-                            <span style="font-weight: 700; color: var(--accent-primary);">Expand for Detailed Scoring
-                                Rubric & Question Mapping</span>
-                        </div>
-                    </summary>
-                    <div
-                        style="padding: 2.5rem; background: white; border-radius: 0 0 12px 12px; border-top: 1px solid #f1f5f9; line-height: 1.7; color: #334155;">
-                        <!-- Verbatim Rubric Content -->
-                        <div style="margin-bottom: 2.5rem;">
-                            <h2
-                                style="color: var(--accent-primary); border-bottom: 2px solid var(--accent-primary); padding-bottom: 0.5rem; margin-bottom: 1rem;">
-                                Technical & Comprehension Framework</h2>
-
-                            <h3 style="color: #1e293b;">Weekly Technical Ratings (1-4)</h3>
-                            <ul style="list-style: none; padding-left: 0; margin-top: 1rem;">
-                                <li style="margin-bottom: 1rem;"><strong>1: Basic / Passive:</strong> Minimal,
-                                    low-stakes, or personal AI use.</li>
-                                <li style="margin-bottom: 1rem;"><strong>2: Applied:</strong> Real professional tasks,
-                                    but discrete or "one-off".</li>
-                                <li style="margin-bottom: 1rem;"><strong>3: Integrated:</strong> Embedded in ongoing
-                                    work; repeatable workflows.</li>
-                                <li style="margin-bottom: 1rem;"><strong>4: Systemic:</strong> Building tools for
-                                    others; multi-tool automated pipelines.</li>
-                            </ul>
-
-                            <h3 style="margin-top: 1.5rem; color: #1e293b;">Comprehension Ratings (L1-L6)</h3>
-                            <ul style="list-style: none; padding-left: 0; margin-top: 1rem;">
-                                <li style="margin-bottom: 0.8rem;"><strong>L1 (Remember):</strong> Names tools and
-                                    activities only.</li>
-                                <li style="margin-bottom: 0.8rem;"><strong>L2 (Understand):</strong> Conceptual
-                                    understanding of why AI works.</li>
-                                <li style="margin-bottom: 0.8rem;"><strong>L3 (Apply):</strong> Professional tasks with
-                                    functional outputs.</li>
-                                <li style="margin-bottom: 0.8rem;"><strong>L4 (Analyse):</strong> Breaks problems down;
-                                    tool comparison and diagnosis.</li>
-                                <li style="margin-bottom: 0.8rem;"><strong>L5 (Create):</strong> Builds original AI
-                                    tools or systems.</li>
-                                <li style="margin-bottom: 0.8rem;"><strong>L6 (Evaluate):</strong> Tests, identifies
-                                    failure points, and adapts systems.</li>
-                            </ul>
-                        </div>
-                    </div>
-                </details>
-            </div>
-        </section>
-
-    </div>
-
-    <!-- Application Logic -->
-    <script src="app.js?v=11"></script>
+<script src="app.js?v=11"></script>
 </body>
-
 </html>

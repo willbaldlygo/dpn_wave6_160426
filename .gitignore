@@ -11,6 +11,8 @@
 !README.md
 !.gitignore
 !.gcloudignore
+!assets/
+!assets/*
 
 # 3. Explicitly ignore sensitive/bulk local files
 bootcamp.db

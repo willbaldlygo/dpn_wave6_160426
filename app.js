@@ -11,6 +11,12 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentSort = { column: 'learner_id', direction: 'asc' };
     let currentHash = ''; // Stores the password hash if locked
 
+    // DPN brand colours for charts
+    const DPN_TEAL   = 'rgba(0,138,177,0.82)';
+    const DPN_GREEN  = 'rgba(79,172,108,0.82)';
+    const DPN_PURPLE = 'rgba(100,73,106,0.82)';
+    const DPN_GREY   = 'rgba(157,183,202,0.55)';
+
     // Helper: SHA-256 Hashing for Password
     async function sha256(message) {
         const msgUint8 = new TextEncoder().encode(message);
@@ -84,7 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const url = baseUrl + '?v=' + Date.now();
         
         document.getElementById('data-status').innerText = "Loading...";
-        document.querySelector('.pulse-dot').style.backgroundColor = 'var(--text-secondary)';
+        document.querySelector('.pulse-dot').style.backgroundColor = '#8A9099';
 
         Papa.parse(url, {
             download: true,
@@ -98,7 +104,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 globalData = results.data;
                 document.getElementById('data-status').innerText = "Live";
-                document.querySelector('.pulse-dot').style.backgroundColor = 'var(--success)';
+                document.querySelector('.pulse-dot').style.backgroundColor = '#4FAC6C';
                 
                 setupInteractions();
                 renderTableHeaders();
@@ -109,7 +115,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     document.getElementById('login-error').style.display = 'block';
                 }
                 document.getElementById('data-status').innerText = "Access Denied / Not Found";
-                document.querySelector('.pulse-dot').style.backgroundColor = 'red';
+                document.querySelector('.pulse-dot').style.backgroundColor = '#A82951';
                 console.warn("Access Error:", err);
             }
         });
@@ -134,15 +140,15 @@ document.addEventListener('DOMContentLoaded', () => {
             const val = e.target.value;
             if(val) {
                 renderDrilldown(val);
-                document.getElementById('cohort-drilldown').style.display = 'grid';
+                document.getElementById('cohort-drilldown').classList.add('visible');
                 document.getElementById('drilldown-id').innerText = val;
-                
+
                 const cohortLearners = globalData.filter(r => r.course_id == val);
                 updateKPIs(cohortLearners);
                 const globalCharts = document.getElementById('global-charts');
                 if (globalCharts) globalCharts.style.display = 'none';
             } else {
-                document.getElementById('cohort-drilldown').style.display = 'none';
+                document.getElementById('cohort-drilldown').classList.remove('visible');
                 updateKPIs(globalData);
                 const globalCharts = document.getElementById('global-charts');
                 if (globalCharts) globalCharts.style.display = 'grid';
@@ -162,25 +168,25 @@ document.addEventListener('DOMContentLoaded', () => {
         const metricsView = document.getElementById('metrics-view');
         const dataView = document.getElementById('data-view');
         const selector = document.querySelector('.cohort-selector-wrapper');
-        const status = document.querySelector('.status-indicator');
+        const status = document.getElementById('status-pill');
 
         if (newMode === 'metrics') {
             if(metricsView) metricsView.style.display = 'flex';
             if(dataView) dataView.style.display = 'none';
             if(selector) selector.style.display = 'none';
             if(status) status.style.display = 'none';
-            document.getElementById('cohort-drilldown').style.display = 'none';
+            document.getElementById('cohort-drilldown').classList.remove('visible');
         } else {
             if(metricsView) metricsView.style.display = 'none';
             if(dataView) dataView.style.display = 'flex';
             if(selector) selector.style.display = 'flex';
             if(status) status.style.display = 'flex';
-            
+
             // Clear State and Reload
             globalData = [];
             if(summaryChart1) summaryChart1.destroy();
             if(summaryChart2) summaryChart2.destroy();
-            document.getElementById('cohort-drilldown').style.display = 'none';
+            document.getElementById('cohort-drilldown').classList.remove('visible');
             const globalCharts = document.getElementById('global-charts');
             if (globalCharts) globalCharts.style.display = 'grid';
             
@@ -357,32 +363,40 @@ document.addEventListener('DOMContentLoaded', () => {
         const ctx1 = document.getElementById('bloomChart').getContext('2d');
         const ctx2 = document.getElementById('trajectoryChart').getContext('2d');
         
+        const tickFont = { family: "'Poppins', sans-serif", size: 11 };
+        const tickColor = '#4A5568';
+
         summaryChart1 = new Chart(ctx1, {
             type: 'bar',
-            data: { labels, datasets: [{ label: label1, data: data1, backgroundColor: 'rgba(59, 130, 246, 0.8)', borderRadius: 6 }] },
+            data: { labels, datasets: [{ label: label1, data: data1, backgroundColor: DPN_TEAL, borderRadius: 6 }] },
             options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
-                       scales: { y: { min: 0, max: 6, ticks: { callback: v => 'L' + v } }, x: { grid: { display: false } } } }
+                       scales: { y: { min: 0, max: 6, ticks: { callback: v => 'L' + v, font: tickFont, color: tickColor }, grid: { color: 'rgba(0,0,0,0.05)' } }, x: { grid: { display: false }, ticks: { font: tickFont, color: tickColor } } } }
         });
-        
+
         summaryChart2 = new Chart(ctx2, {
             type: 'bar',
-            data: { labels, datasets: [{ label: label2, data: data2, backgroundColor: 'rgba(139, 92, 246, 0.8)', borderRadius: 6 }] },
+            data: { labels, datasets: [{ label: label2, data: data2, backgroundColor: DPN_GREEN, borderRadius: 6 }] },
             options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
-                       scales: { y: { min: 0, max: 4 }, x: { grid: { display: false } } } }
+                       scales: { y: { min: 0, max: 4, ticks: { font: tickFont, color: tickColor }, grid: { color: 'rgba(0,0,0,0.05)' } }, x: { grid: { display: false }, ticks: { font: tickFont, color: tickColor } } } }
         });
     }
 
     function renderClusteredCharts(labels, bB, oB, bS, oS) {
+        const tickFont  = { family: "'Poppins', sans-serif", size: 11 };
+        const tickColor = '#4A5568';
+        const legendOpts = { display: true, labels: { font: tickFont, color: tickColor, usePointStyle: true, pointStyle: 'rect' } };
+
         summaryChart1 = new Chart(document.getElementById('bloomChart'), {
             type: 'bar',
             data: {
                 labels: labels,
                 datasets: [
-                    { label: 'Baseline', data: bB, backgroundColor: 'rgba(203, 213, 225, 0.8)', borderRadius: 4 },
-                    { label: 'Outcomes', data: oB, backgroundColor: 'rgba(59, 130, 246, 0.8)', borderRadius: 4 }
+                    { label: 'Baseline', data: bB, backgroundColor: DPN_GREY, borderRadius: 4 },
+                    { label: 'Outcomes', data: oB, backgroundColor: DPN_TEAL, borderRadius: 4 }
                 ]
             },
-            options: { responsive: true, maintainAspectRatio: false, scales: { y: { min: 0, max: 6, ticks: { callback: v => 'L' + v } } } }
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: legendOpts },
+                       scales: { y: { min: 0, max: 6, ticks: { callback: v => 'L' + v, font: tickFont, color: tickColor }, grid: { color: 'rgba(0,0,0,0.05)' } }, x: { grid: { display: false }, ticks: { font: tickFont, color: tickColor } } } }
         });
 
         summaryChart2 = new Chart(document.getElementById('trajectoryChart'), {
@@ -390,11 +404,12 @@ document.addEventListener('DOMContentLoaded', () => {
             data: {
                 labels: labels,
                 datasets: [
-                    { label: 'Baseline', data: bS, backgroundColor: 'rgba(203, 213, 225, 0.8)', borderRadius: 4 },
-                    { label: 'Outcomes', data: oS, backgroundColor: 'rgba(139, 92, 246, 0.8)', borderRadius: 4 }
+                    { label: 'Baseline', data: bS, backgroundColor: DPN_GREY,  borderRadius: 4 },
+                    { label: 'Outcomes', data: oS, backgroundColor: DPN_GREEN, borderRadius: 4 }
                 ]
             },
-            options: { responsive: true, maintainAspectRatio: false, scales: { y: { min: 0, max: 4 } } }
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: legendOpts },
+                       scales: { y: { min: 0, max: 4, ticks: { font: tickFont, color: tickColor }, grid: { color: 'rgba(0,0,0,0.05)' } }, x: { grid: { display: false }, ticks: { font: tickFont, color: tickColor } } } }
         });
     }
 
@@ -454,53 +469,57 @@ document.addEventListener('DOMContentLoaded', () => {
         if(drilldownPeakSophChartObj) drilldownPeakSophChartObj.destroy();
         if(drilldownSophChartObj) drilldownSophChartObj.destroy();
 
+        const tickFont  = { family: "'Poppins', sans-serif", size: 9 };
+        const tickColor = '#4A5568';
         const commonOptions = {
             responsive: true, maintainAspectRatio: false,
-            scales: { x: { ticks: { font: { size: 9 }, autoSkip: false } } }
+            scales: { x: { grid: { display: false }, ticks: { font: tickFont, color: tickColor, autoSkip: false } },
+                      y: { grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: tickFont, color: tickColor } } }
         };
 
         if (currentMode === 'reflections') {
             document.getElementById('drilldown-col-2').style.display = 'block';
-            document.getElementById('drilldown-col-3').style.gridColumn = 'span 2';
+            document.getElementById('drilldown-col-3').classList.add('span-2');
             document.getElementById('drilldown-title-1').innerText = "Peak Comprehension Score";
             document.getElementById('drilldown-title-3').innerText = "Mean Technical Score";
 
             drilldownBloomChartObj = new Chart(document.getElementById('drilldownBloomChart'), {
                 type: 'bar',
-                data: { labels, datasets: [{ label: 'Comp.', data: cohortLearners.map(r => bloomMap[r.peak_bloom_score] || 0), backgroundColor: 'rgba(59, 130, 246, 0.6)' }] },
-                options: { ...commonOptions, plugins: { legend: { display: false } }, scales: { ...commonOptions.scales, y: { min: 0, max: 6, ticks: { callback: v => 'L' + v } } } }
+                data: { labels, datasets: [{ label: 'Comp.', data: cohortLearners.map(r => bloomMap[r.peak_bloom_score] || 0), backgroundColor: DPN_TEAL, borderRadius: 3 }] },
+                options: { ...commonOptions, plugins: { legend: { display: false } }, scales: { ...commonOptions.scales, y: { ...commonOptions.scales.y, min: 0, max: 6, ticks: { ...commonOptions.scales.y.ticks, callback: v => 'L' + v } } } }
             });
             drilldownPeakSophChartObj = new Chart(document.getElementById('drilldownPeakSophChart'), {
                 type: 'bar',
-                data: { labels, datasets: [{ label: 'Peak Tech.', data: cohortLearners.map(r => r.peak_sophistication || 0), backgroundColor: 'rgba(236, 72, 153, 0.6)' }] },
-                options: { ...commonOptions, plugins: { legend: { display: false } }, scales: { ...commonOptions.scales, y: { min: 0, max: 4 } } }
+                data: { labels, datasets: [{ label: 'Peak Tech.', data: cohortLearners.map(r => r.peak_sophistication || 0), backgroundColor: DPN_PURPLE, borderRadius: 3 }] },
+                options: { ...commonOptions, plugins: { legend: { display: false } }, scales: { ...commonOptions.scales, y: { ...commonOptions.scales.y, min: 0, max: 4 } } }
             });
             drilldownSophChartObj = new Chart(document.getElementById('drilldownSophChart'), {
                 type: 'bar',
-                data: { labels, datasets: [{ label: 'Tech.', data: cohortLearners.map(r => r.mean_sophistication || 0), backgroundColor: 'rgba(139, 92, 246, 0.6)' }] },
-                options: { ...commonOptions, plugins: { legend: { display: false } }, scales: { ...commonOptions.scales, y: { min: 0, max: 4 } } }
+                data: { labels, datasets: [{ label: 'Tech.', data: cohortLearners.map(r => r.mean_sophistication || 0), backgroundColor: DPN_GREEN, borderRadius: 3 }] },
+                options: { ...commonOptions, plugins: { legend: { display: false } }, scales: { ...commonOptions.scales, y: { ...commonOptions.scales.y, min: 0, max: 4 } } }
             });
         } else {
             document.getElementById('drilldown-col-2').style.display = 'none';
-            document.getElementById('drilldown-col-3').style.gridColumn = 'span 1';
+            document.getElementById('drilldown-col-3').classList.remove('span-2');
             document.getElementById('drilldown-title-1').innerText = "Comprehension Score (Base vs Out)";
             document.getElementById('drilldown-title-3').innerText = "Technical Score (Base vs Out)";
 
+            const lgd = { display: true, labels: { font: tickFont, color: tickColor, usePointStyle: true, pointStyle: 'rect' } };
             drilldownBloomChartObj = new Chart(document.getElementById('drilldownBloomChart'), {
                 type: 'bar',
                 data: { labels, datasets: [
-                    { label: 'Base', data: cohortLearners.map(r => bloomMap[r.base_bloom] || 0), backgroundColor: 'rgba(203, 213, 225, 0.6)' },
-                    { label: 'Out', data: cohortLearners.map(r => bloomMap[r.out_bloom] || 0), backgroundColor: 'rgba(59, 130, 246, 0.6)' }
+                    { label: 'Base', data: cohortLearners.map(r => bloomMap[r.base_bloom] || 0), backgroundColor: DPN_GREY, borderRadius: 3 },
+                    { label: 'Out',  data: cohortLearners.map(r => bloomMap[r.out_bloom] || 0),  backgroundColor: DPN_TEAL, borderRadius: 3 }
                 ]},
-                options: { ...commonOptions, scales: { ...commonOptions.scales, y: { min: 0, max: 6, ticks: { callback: v => 'L' + v } } } }
+                options: { ...commonOptions, plugins: { legend: lgd }, scales: { ...commonOptions.scales, y: { ...commonOptions.scales.y, min: 0, max: 6, ticks: { ...commonOptions.scales.y.ticks, callback: v => 'L' + v } } } }
             });
             drilldownSophChartObj = new Chart(document.getElementById('drilldownSophChart'), {
                 type: 'bar',
                 data: { labels, datasets: [
-                    { label: 'Base', data: cohortLearners.map(r => r.base_sophistication || 0), backgroundColor: 'rgba(203, 213, 225, 0.6)' },
-                    { label: 'Out', data: cohortLearners.map(r => r.out_sophistication || 0), backgroundColor: 'rgba(139, 92, 246, 0.6)' }
+                    { label: 'Base', data: cohortLearners.map(r => r.base_sophistication || 0), backgroundColor: DPN_GREY,  borderRadius: 3 },
+                    { label: 'Out',  data: cohortLearners.map(r => r.out_sophistication || 0),  backgroundColor: DPN_GREEN, borderRadius: 3 }
                 ]},
-                options: { ...commonOptions, scales: { ...commonOptions.scales, y: { min: 0, max: 4 } } }
+                options: { ...commonOptions, plugins: { legend: lgd }, scales: { ...commonOptions.scales, y: { ...commonOptions.scales.y, min: 0, max: 4 } } }
             });
         }
     }
@@ -509,7 +528,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const contentDiv = document.getElementById('narrative-content');
         let narrativeText = currentMode === 'reflections' ? (row.overall_arc_summary || "") : (row.progression_narrative || "");
         
-        let narrative = (narrativeText || "").replace(/(Week\s*\d+|Step\s*\d+|Phase\s*\d+|BASELINE|OUTCOMES)/gi, '<div class="narrative-section"><h5 style="margin-bottom:0.4rem; color: var(--accent-secondary)">$1</h5>');
+        let narrative = (narrativeText || "").replace(/(Week\s*\d+|Step\s*\d+|Phase\s*\d+|BASELINE|OUTCOMES)/gi, '<div class="narrative-section"><h5>$1</h5>');
         narrative = narrative.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\*(.*?)\*/g, '<em>$1</em>').replace(/\|/g, '<br>').replace(/---/g, '<hr>');
         narrative = narrative.split('\n\n').map(p => `<p style="margin-bottom: 0.8rem;">${p}</p>`).join('');
 
@@ -531,6 +550,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } catch (e) {}
         
-        contentDiv.innerHTML = `<div style="margin-bottom: 1.5rem; padding-bottom: 0.5rem; border-bottom: 1px solid #f1f5f9;"><span style="font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase;">Selected Profile</span><h4 style="font-size: 1.1rem; color: var(--accent-primary); margin-top: 0.1rem;">Learner ${row.learner_id} (Course ${row.course_id})</h4></div><div class="narrative-body">${narrative}</div>${rawHtml}`;
+        contentDiv.innerHTML = `<div class="learner-profile-header"><div class="profile-label">Selected Profile</div><h4>Learner ${row.learner_id} — Course ${row.course_id}</h4></div><div class="narrative-body">${narrative}</div>${rawHtml}`;
     }
 });
